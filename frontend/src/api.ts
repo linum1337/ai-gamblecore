@@ -8,8 +8,16 @@ async function request<T>(path: string, options?: RequestInit): Promise<T> {
     headers: { "Content-Type": "application/json", ...options?.headers },
   });
   if (!response.ok) {
-    const body = await response.json().catch(() => ({ detail: "Неизвестная ошибка" }));
-    throw new Error(body.detail ?? `HTTP ${response.status}`);
+    if (response.status === 504) {
+      throw new Error("Модель отвечает слишком долго. Шлюз прервал ожидание ответа (504). Попробуйте ещё раз или выберите более быструю модель.");
+    }
+    const contentType = response.headers.get("content-type") ?? "";
+    if (contentType.includes("application/json")) {
+      const body = await response.json().catch(() => ({ detail: "Неизвестная ошибка" }));
+      throw new Error(body.detail ?? `HTTP ${response.status}`);
+    }
+    const text = await response.text();
+    throw new Error(text.includes("Gateway Time-out") ? "Шлюз не дождался ответа модели." : `HTTP ${response.status}`);
   }
   return response.json() as Promise<T>;
 }
