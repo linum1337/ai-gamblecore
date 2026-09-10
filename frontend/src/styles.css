@@ -98,6 +98,24 @@ button { color: inherit; }
 .risk-toggle.enabled.burn { border-color: rgba(255,40,50,.9); background: repeating-linear-gradient(-45deg, rgba(255,30,40,.08) 0 8px, transparent 8px 16px); }
 .risk-toggle.enabled.burn .toggle-track span { background: #ff2635; box-shadow: 0 0 12px rgba(255,38,53,.8); }
 
+.history-panel { margin: 0 0 14px; border: 1px solid rgba(216,255,62,.42); background: rgba(13,12,17,.98); animation: slide-in .25s ease-out; }
+.history-panel > header { min-height: 58px; padding: 12px 15px; display: flex; align-items: center; justify-content: space-between; gap: 18px; border-bottom: 1px solid var(--line); }
+.history-panel > header > div { display: grid; gap: 4px; }
+.history-panel > header span { color: var(--acid); font-size: .72rem; font-weight: 700; letter-spacing: .12em; }
+.history-panel > header small { color: #77727e; font-size: .64rem; }
+.history-panel > header button { min-height: 34px; padding: 0 11px; border: 1px solid var(--acid); color: var(--acid); background: transparent; cursor: pointer; font-size: .62rem; font-weight: 700; letter-spacing: .07em; }
+.history-panel button:disabled { opacity: .35; cursor: not-allowed; }
+.history-empty { margin: 0; padding: 22px 16px; color: #77727e; font-size: .75rem; }
+.history-list { max-height: 320px; padding: 8px; display: grid; gap: 6px; overflow-y: auto; }
+.history-list article { display: grid; grid-template-columns: 1fr 42px; border: 1px solid #302d35; background: #0a090d; transition: border-color .2s, background .2s; }
+.history-list article:hover { border-color: #595460; background: #111016; }
+.history-list article.active { border-color: var(--acid); background: rgba(216,255,62,.045); box-shadow: inset 3px 0 0 var(--acid); }
+.history-select { min-width: 0; padding: 12px 14px; display: grid; gap: 6px; border: 0; color: var(--ink); background: transparent; text-align: left; cursor: pointer; }
+.history-select strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: .76rem; font-weight: 650; }
+.history-select span { color: #77727e; font-size: .61rem; letter-spacing: .05em; }
+.history-delete { border: 0; border-left: 1px solid #302d35; color: #77727e; background: transparent; cursor: pointer; font-size: 1.25rem; }
+.history-delete:hover:not(:disabled) { color: #ff5c35; background: rgba(255,92,53,.08); }
+
 .machine { position: relative; border: 1px solid rgba(245,241,232,.26); background: var(--panel); box-shadow: 0 26px 100px rgba(0,0,0,.45); }
 .machine::before, .machine::after { content: ""; position: absolute; z-index: 2; width: 12px; height: 12px; border: 1px solid #5e5a63; border-radius: 50%; background: #08070b; box-shadow: inset 1px 1px 3px #000; }
 .machine::before { top: 10px; left: 10px; }
@@ -341,6 +359,7 @@ textarea::placeholder { color: #5d5963; }
 .chat-composer .pull-button { min-height: 112px; }
 
 .error-message { margin-top: 14px; padding: 15px 18px; border: 1px solid var(--orange); color: #ff9d86; background: rgba(255,92,53,.08); font-size: .8rem; }
+.storage-warning { margin-top: 10px; padding: 11px 14px; border: 1px solid #b98729; color: #eec06a; background: rgba(185,135,41,.08); font-size: .72rem; }
 .result-panel { margin-top: 18px; border: 1px solid var(--line); background: #111015; animation: slide-in .4s ease-out; }
 .result-head { display: flex; justify-content: space-between; padding: 14px 18px; border-bottom: 1px solid var(--line); color: var(--acid); font-size: .7rem; font-weight: 700; letter-spacing: .12em; }
 .ticket { color: #77727e; }
@@ -430,6 +449,8 @@ footer { width: min(1180px, 92vw); margin: 0 auto; padding: 0 0 30px; display: f
   .settings-panel p { grid-column: 1; }
   .provider-grid { grid-template-columns: 1fr; }
   .risk-controls { grid-template-columns: 1fr; }
+  .history-panel > header { align-items: flex-start; flex-direction: column; }
+  .history-panel > header button { width: 100%; }
   .chat-head { align-items: flex-start; flex-direction: column; }
   .chat-head-actions { width: 100%; justify-content: space-between; }
   .conversation { min-height: 210px; max-height: 520px; padding: 14px; }

@@ -43,3 +43,11 @@ export interface ChatTurn {
   prompt: string;
   result: GenerateResponse;
 }
+
+export interface Conversation {
+  id: string;
+  title: string;
+  turns: ChatTurn[];
+  createdAt: string;
+  updatedAt: string;
+}

@@ -1,6 +1,10 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { createRoll, generate } from "./api";
-import type { ChatMessage, ChatTurn, ProviderConfig, RollItem } from "./types";
+import type { ChatMessage, ChatTurn, Conversation, ProviderConfig, RollItem } from "./types";
+
+const STORAGE_KEY = "ai-gamblecore:conversations:v1";
+const MAX_SAVED_CONVERSATIONS = 20;
+const MAX_SAVED_TURNS = 30;
 
 const CATEGORY_META: Record<string, { icon: string; title: string }> = {
   translation: { icon: "文", title: "Перевод" },
@@ -29,7 +33,54 @@ function effectClassForRoll(roll: RollItem): string {
   return `effect-${roll.category}-${safeValue}`;
 }
 
+function createId(): string {
+  return crypto.randomUUID();
+}
+
+function loadConversations(): Conversation[] {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return [];
+    const parsed: unknown = JSON.parse(raw);
+    if (!Array.isArray(parsed)) return [];
+    return parsed
+      .filter((item): item is Conversation => (
+        typeof item === "object" && item !== null
+        && typeof (item as Conversation).id === "string"
+        && typeof (item as Conversation).title === "string"
+        && Array.isArray((item as Conversation).turns)
+        && typeof (item as Conversation).createdAt === "string"
+        && typeof (item as Conversation).updatedAt === "string"
+      ))
+      .sort((a, b) => b.updatedAt.localeCompare(a.updatedAt))
+      .slice(0, MAX_SAVED_CONVERSATIONS);
+  } catch {
+    return [];
+  }
+}
+
+function conversationTitle(prompt: string): string {
+  const compact = prompt.replace(/\s+/g, " ").trim();
+  return compact.length > 52 ? `${compact.slice(0, 49)}…` : compact;
+}
+
+function formatSavedDate(value: string): string {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "недавно";
+  return new Intl.DateTimeFormat("ru-RU", {
+    day: "2-digit",
+    month: "short",
+    hour: "2-digit",
+    minute: "2-digit",
+  }).format(date);
+}
+
 function App() {
+  const initialChatState = useRef<{ conversations: Conversation[]; activeId: string } | null>(null);
+  if (!initialChatState.current) {
+    const saved = loadConversations();
+    initialChatState.current = { conversations: saved, activeId: saved[0]?.id ?? createId() };
+  }
   const [prompt, setPrompt] = useState("");
   const [demo, setDemo] = useState(true);
   const [provider, setProvider] = useState(DEFAULT_PROVIDER);
@@ -38,11 +89,16 @@ function App() {
   const [allowTokenBurn, setAllowTokenBurn] = useState(false);
   const [rolls, setRolls] = useState<RollItem[]>(EMPTY_REELS);
   const [revealed, setRevealed] = useState(0);
-  const [turns, setTurns] = useState<ChatTurn[]>([]);
+  const [conversations, setConversations] = useState<Conversation[]>(initialChatState.current.conversations);
+  const [activeConversationId, setActiveConversationId] = useState(initialChatState.current.activeId);
+  const [historyOpen, setHistoryOpen] = useState(false);
+  const [storageWarning, setStorageWarning] = useState("");
   const [pendingPrompt, setPendingPrompt] = useState("");
   const [status, setStatus] = useState<"idle" | "rolling" | "generating">("idle");
   const [error, setError] = useState("");
   const chatEndRef = useRef<HTMLDivElement>(null);
+  const activeConversation = conversations.find((conversation) => conversation.id === activeConversationId);
+  const turns = activeConversation?.turns ?? [];
 
   const canPlay = prompt.trim().length >= 3 && status === "idle" && (demo || provider.api_key.length > 0);
   const buttonText = useMemo(() => {
@@ -54,6 +110,23 @@ function App() {
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" });
   }, [turns, pendingPrompt, status]);
+
+  useEffect(() => {
+    try {
+      if (conversations.length === 0) {
+        localStorage.removeItem(STORAGE_KEY);
+      } else {
+        const snapshot = conversations.slice(0, MAX_SAVED_CONVERSATIONS).map((conversation) => ({
+          ...conversation,
+          turns: conversation.turns.slice(-MAX_SAVED_TURNS),
+        }));
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(snapshot));
+      }
+      setStorageWarning("");
+    } catch {
+      setStorageWarning("Хранилище браузера заполнено — новые ходы могут не сохраниться.");
+    }
+  }, [conversations]);
 
   async function play() {
     if (!canPlay) return;
@@ -78,14 +151,22 @@ function App() {
       }
       setStatus("generating");
       const generation = await generate(currentPrompt, roll.roll_id, demo, provider, history);
-      setTurns((current) => [
-        ...current,
-        {
-          id: crypto.randomUUID(),
-          prompt: currentPrompt,
-          result: generation,
-        },
-      ]);
+      const turn: ChatTurn = { id: createId(), prompt: currentPrompt, result: generation };
+      const now = new Date().toISOString();
+      setConversations((current) => {
+        const existing = current.find((conversation) => conversation.id === activeConversationId);
+        const updated: Conversation = existing
+          ? { ...existing, turns: [...existing.turns, turn], updatedAt: now }
+          : {
+              id: activeConversationId,
+              title: conversationTitle(currentPrompt),
+              turns: [turn],
+              createdAt: now,
+              updatedAt: now,
+            };
+        return [updated, ...current.filter((conversation) => conversation.id !== activeConversationId)]
+          .slice(0, MAX_SAVED_CONVERSATIONS);
+      });
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : "Что-то пошло не так");
       setPrompt(currentPrompt);
@@ -97,11 +178,37 @@ function App() {
 
   function resetConversation() {
     if (status !== "idle") return;
-    setTurns([]);
+    setActiveConversationId(createId());
     setPrompt("");
     setError("");
     setRolls(EMPTY_REELS);
     setRevealed(0);
+    setHistoryOpen(false);
+  }
+
+  function selectConversation(conversation: Conversation) {
+    if (status !== "idle") return;
+    const lastTurn = conversation.turns.at(-1);
+    setActiveConversationId(conversation.id);
+    setPrompt("");
+    setError("");
+    setRolls(lastTurn?.result.rolls ?? EMPTY_REELS);
+    setRevealed(lastTurn?.result.rolls.length ?? 0);
+    setHistoryOpen(false);
+  }
+
+  function deleteConversation(id: string) {
+    if (status !== "idle" || !window.confirm("Удалить этот диалог без возможности восстановления?")) return;
+    const remaining = conversations.filter((conversation) => conversation.id !== id);
+    setConversations(remaining);
+    if (id === activeConversationId) {
+      const next = remaining[0];
+      setActiveConversationId(next?.id ?? createId());
+      setRolls(next?.turns.at(-1)?.result.rolls ?? EMPTY_REELS);
+      setRevealed(next?.turns.at(-1)?.result.rolls.length ?? 0);
+      setPrompt("");
+      setError("");
+    }
   }
 
   function updateProvider(field: keyof ProviderConfig, value: string) {
@@ -120,10 +227,14 @@ function App() {
           <span className={`connection ${demo ? "demo" : "live"}`}>
             <span className="connection-dot" /> {demo ? "DEMO" : "LIVE"}
           </span>
+          <button className="icon-button" onClick={() => setHistoryOpen(!historyOpen)} aria-expanded={historyOpen}>
+            <span aria-hidden="true">▤</span><span className="desktop-label"> ИСТОРИЯ · {conversations.length}</span>
+          </button>
           <button className="icon-button" onClick={() => setSettingsOpen(!settingsOpen)} aria-expanded={settingsOpen}>
             <span aria-hidden="true">⚙</span><span className="desktop-label"> МОДЕЛЬ</span>
           </button>
         </div>
+
       </header>
 
       <section className="game-layout" id="play">
@@ -131,6 +242,30 @@ function App() {
           <span className="eyebrow">НЕЙРОСЕТЬ РЕШАЕТ. СЛУЧАЙ РЕШАЕТ БОЛЬШЕ.</span>
           <span className="odds">6 НЕЗАВИСИМЫХ РОЛЛОВ</span>
         </div>
+
+        {historyOpen && (
+          <section className="history-panel" aria-label="Сохранённые диалоги">
+            <header>
+              <div><span>АРХИВ СТОЛА</span><small>Хранится только в этом браузере</small></div>
+              <button onClick={resetConversation} disabled={status !== "idle"}>+ НОВЫЙ ДИАЛОГ</button>
+            </header>
+            {conversations.length === 0 ? (
+              <p className="history-empty">Здесь появятся завершённые ходы. Они переживут перезагрузку страницы.</p>
+            ) : (
+              <div className="history-list">
+                {conversations.map((conversation) => (
+                  <article className={conversation.id === activeConversationId ? "active" : ""} key={conversation.id}>
+                    <button className="history-select" onClick={() => selectConversation(conversation)} disabled={status !== "idle"}>
+                      <strong>{conversation.title}</strong>
+                      <span>{conversation.turns.length} ходов · {formatSavedDate(conversation.updatedAt)}</span>
+                    </button>
+                    <button className="history-delete" onClick={() => deleteConversation(conversation.id)} disabled={status !== "idle"} aria-label={`Удалить диалог «${conversation.title}»`}>×</button>
+                  </article>
+                ))}
+              </div>
+            )}
+          </section>
+        )}
 
         {settingsOpen && (
           <section className="settings-panel" aria-label="Настройки модели">
@@ -290,6 +425,7 @@ function App() {
         </section>
 
         {error && <div className="error-message" role="alert">ОШИБКА СТОЛА: {error}</div>}
+        {storageWarning && <div className="storage-warning" role="status">{storageWarning}</div>}
       </section>
 
       <footer><span>18+ ЭМОЦИОНАЛЬНО</span><span>ДЕНЬГИ НЕ ПРИНИМАЕМ · СМЫСЛ НЕ ВОЗВРАЩАЕМ</span></footer>
