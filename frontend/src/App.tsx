@@ -34,6 +34,8 @@ function App() {
   const [demo, setDemo] = useState(true);
   const [provider, setProvider] = useState(DEFAULT_PROVIDER);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [adultMode, setAdultMode] = useState(false);
+  const [allowTokenBurn, setAllowTokenBurn] = useState(false);
   const [rolls, setRolls] = useState<RollItem[]>(EMPTY_REELS);
   const [revealed, setRevealed] = useState(0);
   const [result, setResult] = useState<GenerateResponse | null>(null);
@@ -56,7 +58,7 @@ function App() {
     setStatus("rolling");
 
     try {
-      const roll = await createRoll();
+      const roll = await createRoll(adultMode, allowTokenBurn);
       setRolls(roll.rolls);
       for (let index = 1; index <= roll.rolls.length; index += 1) {
         await new Promise((resolve) => window.setTimeout(resolve, 310));
@@ -113,7 +115,19 @@ function App() {
                 <label>API-ключ<input type="password" autoComplete="off" value={provider.api_key} onChange={(e) => updateProvider("api_key", e.target.value)} placeholder="sk-..." /></label>
               </div>
             )}
-            <p>Ключ существует только в памяти этой вкладки и не сохраняется.</p>
+            <div className="risk-controls">
+              <label className={`risk-toggle ${adultMode ? "enabled adult" : ""}`}>
+                <input type="checkbox" checked={adultMode} onChange={(event) => setAdultMode(event.target.checked)} />
+                <span className="toggle-track"><span /></span>
+                <span><strong>18+ РЕЖИМ</strong><small>Мат, чёрный юмор и жёсткая подача</small></span>
+              </label>
+              <label className={`risk-toggle ${allowTokenBurn ? "enabled burn" : ""}`}>
+                <input type="checkbox" checked={allowTokenBurn} onChange={(event) => setAllowTokenBurn(event.target.checked)} />
+                <span className="toggle-track"><span /></span>
+                <span><strong>ПУСТОЙ ПРОКРУТ</strong><small>{demo ? "В demo только симуляция" : "Ответ модели может быть удалён после оплаты токенов"}</small></span>
+              </label>
+            </div>
+            <p>Ключ существует только в памяти вкладки. Опасные исходы включаются только вручную.</p>
           </section>
         )}
 
@@ -190,7 +204,17 @@ function App() {
                 ))}
               </details>
             )}
-            <div className="answer"><p>{result.answer}</p></div>
+            {result.burned ? (
+              <div className="burned-result">
+                <span className="burned-icon" aria-hidden="true">×</span>
+                <div>
+                  <strong>ОТВЕТ СГОРЕЛ</strong>
+                  <p>{result.demo ? "Это была demo-симуляция — реальные токены не потрачены." : "Модель сгенерировала ответ, казино его уничтожило. Токены списаны."}</p>
+                </div>
+              </div>
+            ) : (
+              <div className="answer"><p>{result.answer}</p></div>
+            )}
             <details className="transcript final-prompt">
               <summary>ПОКАЗАТЬ ИТОГОВЫЙ ПРОМПТ</summary>
               <pre>{result.final_prompt}</pre>

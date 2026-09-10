@@ -14,8 +14,12 @@ async function request<T>(path: string, options?: RequestInit): Promise<T> {
   return response.json() as Promise<T>;
 }
 
-export function createRoll(): Promise<RollResponse> {
-  return request<RollResponse>("/roll", { method: "POST" });
+export function createRoll(adultMode: boolean, allowTokenBurn: boolean): Promise<RollResponse> {
+  const params = new URLSearchParams({
+    adult_mode: String(adultMode),
+    allow_token_burn: String(allowTokenBurn),
+  });
+  return request<RollResponse>(`/roll?${params}`, { method: "POST" });
 }
 
 export function generate(
@@ -29,4 +33,3 @@ export function generate(
     body: JSON.stringify({ prompt, roll_id: rollId, demo, provider: demo ? null : provider }),
   });
 }
-

@@ -24,6 +24,7 @@ export interface GenerateResponse {
   rolls: RollItem[];
   translations: TranslationStep[];
   demo: boolean;
+  burned: boolean;
 }
 
 export interface ProviderConfig {
@@ -31,4 +32,3 @@ export interface ProviderConfig {
   model: string;
   api_key: string;
 }
-
