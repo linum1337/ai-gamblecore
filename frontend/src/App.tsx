@@ -24,6 +24,11 @@ const DEFAULT_PROVIDER: ProviderConfig = {
   api_key: "",
 };
 
+function effectClassForRoll(roll: RollItem): string {
+  const safeValue = roll.value.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+  return `effect-${roll.category}-${safeValue}`;
+}
+
 function App() {
   const [prompt, setPrompt] = useState("");
   const [demo, setDemo] = useState(true);
@@ -130,9 +135,13 @@ function App() {
               const meta = CATEGORY_META[roll.category];
               const visible = index < revealed;
               return (
-                <article className={`reel ${visible ? `revealed ${roll.rarity}` : "spinning"}`} key={roll.category}>
+                <article
+                  className={`reel ${visible ? `revealed ${roll.rarity} ${effectClassForRoll(roll)}` : "spinning"}`}
+                  key={roll.category}
+                >
                   <div className="reel-label"><span>{meta.icon}</span>{meta.title}</div>
                   <div className="reel-window">
+                    <span className="effect-layer" aria-hidden="true" />
                     <div className="reel-value">{visible ? roll.label : "???"}</div>
                     {visible && <span className="rarity">{roll.rarity}</span>}
                   </div>
@@ -196,4 +205,3 @@ function App() {
 }
 
 export default App;
-
