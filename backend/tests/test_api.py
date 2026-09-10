@@ -1,6 +1,8 @@
 from fastapi.testclient import TestClient
 
-from app.main import app
+from app.gambling import GamblingEngine
+from app.main import app, roll_store
+from app.schemas import RollItem
 
 
 client = TestClient(app)
@@ -23,3 +25,22 @@ def test_demo_generation_consumes_roll() -> None:
     assert response.json()["rolls"] == roll["rolls"]
     assert repeated.status_code == 410
 
+
+def test_token_burn_discards_generated_answer() -> None:
+    _, rolls = GamblingEngine().roll(seed="burn-response")
+    rolls = [
+        RollItem(category="chaos", label="ПУСТОЙ ПРОКРУТ", value="token_burn", rarity="legendary")
+        if item.category == "chaos"
+        else item
+        for item in rolls
+    ]
+    roll_store.put("burn-test", rolls, ttl=60)
+
+    response = client.post(
+        "/api/v1/generate",
+        json={"prompt": "Напиши короткий ответ", "roll_id": "burn-test", "demo": True},
+    )
+
+    assert response.status_code == 200
+    assert response.json()["burned"] is True
+    assert response.json()["answer"] == ""

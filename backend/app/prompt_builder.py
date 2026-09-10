@@ -91,6 +91,15 @@ CHAOS = {
     "courtroom": "Stage the answer as a courtroom hearing with evidence, objections, and a final verdict.",
     "random_censorship": "Comically censor a few harmless ordinary words with asterisks, without obscuring critical information.",
     "soap_opera": "Turn the explanation into a melodramatic soap-opera scene full of betrayal, revelations, and a useful resolution.",
+    "profanity_light": "Use natural Russian profanity occasionally for emphasis while remaining useful. Never direct abuse at the user or protected groups.",
+    "profanity_heavy": "Use frequent expressive Russian profanity and an unfiltered tone, but keep the answer understandable and never attack the user or protected groups.",
+    "drunk_uncle": "Write like a loud drunk uncle explaining the topic in a kitchen at 3 AM, with profanity, dubious metaphors, and a surprisingly solid conclusion.",
+    "brutal_roast": "Roast the problem and bad approaches mercilessly with profanity, without humiliating the user or targeting protected traits.",
+    "dark_humor": "Use dark, absurd humor and occasional profanity without encouraging harm or targeting real victims.",
+    "support_snapped": "Write like technical support finally lost patience after the hundredth identical ticket: profane, exhausted, but technically correct.",
+    "angry_taxi": "Explain like an angry taxi driver who has opinions about everything, uses profanity, and somehow knows the subject perfectly.",
+    "filthy_poet": "Write as a profane street poet with rhythm, vivid metaphors, and a clear answer.",
+    "token_burn": "Generate a complete, substantive answer up to 600 words. The application will intentionally discard it after generation.",
 }
 
 

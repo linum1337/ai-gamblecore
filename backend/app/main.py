@@ -43,9 +43,12 @@ async def health() -> dict[str, str]:
 
 
 @app.post("/api/v1/roll", response_model=RollResponse)
-async def create_roll() -> RollResponse:
+async def create_roll(
+    adult_mode: bool = False,
+    allow_token_burn: bool = False,
+) -> RollResponse:
     roll_id = str(uuid4())
-    _, rolls = engine.roll()
+    _, rolls = engine.roll(adult_mode=adult_mode, allow_token_burn=allow_token_burn)
     roll_store.put(roll_id, rolls, settings.roll_ttl_seconds)
     return RollResponse(roll_id=roll_id, expires_in=settings.roll_ttl_seconds, rolls=rolls)
 
@@ -55,6 +58,8 @@ async def generate(payload: GenerateRequest) -> GenerateResponse:
     rolls = roll_store.consume(payload.roll_id)
     if rolls is None:
         raise HTTPException(status_code=410, detail="Roll expired or was already used")
+
+    burned = any(item.category == "chaos" and item.value == "token_burn" for item in rolls)
 
     if payload.demo:
         answer, final_prompt, translations = run_demo_generation(payload.prompt, rolls)
@@ -69,10 +74,10 @@ async def generate(payload: GenerateRequest) -> GenerateResponse:
             raise HTTPException(status_code=502, detail=str(exc)) from exc
 
     return GenerateResponse(
-        answer=answer,
+        answer="" if burned else answer,
         final_prompt=final_prompt,
         rolls=rolls,
         translations=translations,
         demo=payload.demo,
+        burned=burned,
     )
-

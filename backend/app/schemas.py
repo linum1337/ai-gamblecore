@@ -51,4 +51,4 @@ class GenerateResponse(BaseModel):
     rolls: list[RollItem]
     translations: list[TranslationStep]
     demo: bool
-
+    burned: bool = False

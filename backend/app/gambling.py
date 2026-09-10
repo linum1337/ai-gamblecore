@@ -13,6 +13,8 @@ class Option:
     value: str
     weight: int
     rarity: str
+    adult: bool = False
+    token_burn: bool = False
 
 
 TABLES: dict[str, tuple[Option, ...]] = {
@@ -117,17 +119,38 @@ TABLES: dict[str, tuple[Option, ...]] = {
         Option("Судебное заседание", "courtroom", 4, "epic"),
         Option("Цензурь случайные слова", "random_censorship", 3, "legendary"),
         Option("Мыльная опера", "soap_opera", 4, "epic"),
+        Option("С матом, но по делу", "profanity_light", 6, "rare", adult=True),
+        Option("Мат через слово", "profanity_heavy", 3, "legendary", adult=True),
+        Option("Пьяный дядя на кухне", "drunk_uncle", 5, "epic", adult=True),
+        Option("Жёсткая прожарка", "brutal_roast", 4, "epic", adult=True),
+        Option("Чёрный юмор", "dark_humor", 4, "epic", adult=True),
+        Option("Саппорт окончательно сорвался", "support_snapped", 4, "epic", adult=True),
+        Option("Злой таксист объясняет жизнь", "angry_taxi", 4, "epic", adult=True),
+        Option("Матерный поэт", "filthy_poet", 3, "legendary", adult=True),
+        Option("ПУСТОЙ ПРОКРУТ", "token_burn", 2, "legendary", token_burn=True),
     ),
 }
 
 
 class GamblingEngine:
-    def roll(self, seed: str | None = None) -> tuple[str, list[RollItem]]:
+    def roll(
+        self,
+        seed: str | None = None,
+        *,
+        adult_mode: bool = False,
+        allow_token_burn: bool = False,
+    ) -> tuple[str, list[RollItem]]:
         seed = seed or secrets.token_hex(16)
         rng = random.Random(seed)
         results: list[RollItem] = []
         for category, options in TABLES.items():
-            option = rng.choices(options, weights=[item.weight for item in options], k=1)[0]
+            available = [
+                item
+                for item in options
+                if (adult_mode or not item.adult)
+                and (allow_token_burn or not item.token_burn)
+            ]
+            option = rng.choices(available, weights=[item.weight for item in available], k=1)[0]
             results.append(
                 RollItem(
                     category=category,

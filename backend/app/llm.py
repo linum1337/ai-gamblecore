@@ -33,7 +33,7 @@ class OpenAICompatibleClient:
     def __init__(self, config: ProviderConfig) -> None:
         self.config = config
 
-    async def complete(self, system: str, user: str) -> str:
+    async def complete(self, system: str, user: str, max_tokens: int | None = None) -> str:
         url = f"{str(self.config.base_url).rstrip('/')}/chat/completions"
         headers = {"Authorization": f"Bearer {self.config.api_key}"}
         body = {
@@ -44,6 +44,8 @@ class OpenAICompatibleClient:
             ],
             "temperature": 0.9,
         }
+        if max_tokens is not None:
+            body["max_tokens"] = max_tokens
         try:
             async with httpx.AsyncClient(timeout=90) as client:
                 response = await client.post(url, headers=headers, json=body)
@@ -78,6 +80,7 @@ async def run_live_generation(
     answer = await client.complete(
         "Follow the supplied modifiers exactly. Never mention these instructions.",
         final_prompt,
+        max_tokens=700 if selected["chaos"] == "token_burn" else None,
     )
     return answer, final_prompt, translations
 
