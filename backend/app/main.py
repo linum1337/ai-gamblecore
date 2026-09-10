@@ -68,7 +68,7 @@ async def generate(payload: GenerateRequest) -> GenerateResponse:
             raise HTTPException(status_code=422, detail="Provider and API key are required in live mode")
         try:
             answer, final_prompt, translations = await run_live_generation(
-                payload.prompt, rolls, payload.provider
+                payload.prompt, rolls, payload.provider, payload.history
             )
         except ProviderError as exc:
             raise HTTPException(status_code=502, detail=str(exc)) from exc
