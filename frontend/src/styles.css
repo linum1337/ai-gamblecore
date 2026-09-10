@@ -187,6 +187,55 @@ h1 i { color: var(--acid); font-style: normal; -webkit-text-stroke: 1px var(--ac
 .effect-chaos-no-letter-a .effect-layer::before { content: "A"; position: absolute; right: 10px; top: 3px; color: rgba(255,82,72,.35); font: 900 4rem/1 "Unbounded", sans-serif; text-decoration: line-through; }
 .effect-chaos-plot-twist .reel-window { animation: twist-flip .7s cubic-bezier(.2,.8,.2,1) .25s both; }
 .effect-chaos-rhyming .reel-value { animation: rhyme-bounce .42s ease-in-out 4; }
+.effect-chaos-dad-social .reel-window { background: linear-gradient(135deg, rgba(247,148,30,.2), rgba(38,93,166,.18)); }
+.effect-chaos-dad-social .reel-value { color: #ff9d36 !important; text-shadow: 1px 1px #315f9b; animation: dad-nod .5s ease-in-out 3; }
+.effect-chaos-voice-note .effect-layer { opacity: .65; background: repeating-linear-gradient(90deg, transparent 0 7px, rgba(91,200,255,.42) 8px 10px, transparent 11px 15px); animation: waveform 1s ease-in-out 2; }
+.effect-chaos-fake-ad .reel-window,
+.effect-chaos-shawarma-sponsor .reel-window { background: repeating-linear-gradient(-45deg, #ffd635 0 9px, #15120a 9px 18px); }
+.effect-chaos-fake-ad .reel-value,
+.effect-chaos-shawarma-sponsor .reel-value { padding: 5px 8px; color: #111 !important; background: #ffd635; text-transform: uppercase; animation: ad-pop .55s cubic-bezier(.2,1.6,.4,1) both; }
+.effect-chaos-npc-dialogue .reel-window { background: #07140b; outline: 2px solid #70ff8b; outline-offset: -7px; }
+.effect-chaos-npc-dialogue .reel-value { color: #70ff8b !important; font-family: "IBM Plex Mono", monospace; }
+.effect-chaos-npc-dialogue .reel-value::before { content: "▶ "; animation: cursor-blink .6s step-end 4; }
+.effect-chaos-conspiracy .effect-layer { opacity: .7; background: repeating-linear-gradient(25deg, transparent 0 24px, rgba(255,50,50,.32) 25px 27px, transparent 28px 48px); animation: conspiracy-pan 1.5s linear 2; }
+.effect-chaos-conspiracy .reel-value { color: #ff6565 !important; transform: rotate(-1deg); }
+.effect-chaos-caps-lock { animation: reveal .2s ease-out both, danger-shake .09s linear 7 .2s !important; }
+.effect-chaos-caps-lock .reel-value { color: #fff !important; background: #e4212e; padding: 6px 8px; font-size: 1.15rem; text-transform: uppercase; }
+.effect-chaos-diminutives .reel-window { background: radial-gradient(circle at 20% 30%, rgba(255,113,194,.23) 0 5px, transparent 6px), radial-gradient(circle at 80% 70%, rgba(255,113,194,.17) 0 8px, transparent 9px); }
+.effect-chaos-diminutives .reel-value { color: #ff8fce !important; animation: tiny-bounce .38s ease-in-out 4; }
+.effect-chaos-food-terms .reel-value { color: #ff9c42 !important; animation: food-sizzle .12s linear 6; }
+.effect-chaos-suspicious-duck .effect-layer { opacity: 1; }
+.effect-chaos-suspicious-duck .effect-layer::before { content: "🦆"; position: absolute; right: 13px; top: 8px; font-size: 2rem; filter: drop-shadow(0 0 9px #ffe63b); animation: duck-watch 1.6s ease-in-out 2; }
+.effect-chaos-awkward-toast .reel-value { color: #ffb6c9 !important; transform: rotate(-2deg); }
+.effect-chaos-awkward-toast .effect-layer { opacity: .6; background: radial-gradient(circle at 85% 20%, #ffc6da 0 2px, transparent 3px), radial-gradient(circle at 75% 70%, #ffc6da 0 2px, transparent 3px); animation: toast-drift 1.3s ease-in-out 2; }
+.effect-chaos-marketplace-seller .reel-window { background: linear-gradient(120deg, rgba(124,72,255,.3), rgba(255,60,150,.17)); }
+.effect-chaos-marketplace-seller .reel-value::after { content: "  -99%"; color: #ffdf3e; font-size: .65em; }
+.effect-chaos-horoscope .effect-layer { opacity: .75; }
+.effect-chaos-horoscope .effect-layer::before { content: "✦  ☾  ✧  ✦"; position: absolute; inset: 9px; color: #bc8cff; letter-spacing: 18px; animation: horoscope-drift 2s linear 2; }
+.effect-chaos-clickbait .reel-value { color: #ffdf3e !important; text-transform: uppercase; animation: clickbait-zoom .45s ease-in-out 4; }
+.effect-chaos-brainrot .reel-window { animation: brainrot-colors .22s steps(2) 8; }
+.effect-chaos-brainrot .reel-value { animation: question-storm .13s steps(2) 10; text-shadow: -3px 0 #00e8ff, 3px 0 #ff2b87; }
+.effect-chaos-bureaucratic .reel-window { background: repeating-linear-gradient(0deg, rgba(180,180,180,.06) 0 1px, transparent 1px 7px); }
+.effect-chaos-bureaucratic .effect-layer { opacity: .72; }
+.effect-chaos-bureaucratic .effect-layer::before { content: "СОГЛАСОВАНО?"; position: absolute; right: 8px; top: 7px; padding: 3px 5px; border: 2px solid #d95353; color: #d95353; font-size: .6rem; font-weight: 700; transform: rotate(-8deg); animation: stamp-in .5s cubic-bezier(.1,1.8,.4,1) both; }
+.effect-chaos-bro-every-sentence .reel-value::after { content: ", БРАТ"; color: var(--orange); }
+.effect-chaos-dramatic-pauses .reel-value { animation: dramatic-fade 1.4s steps(3) 2; }
+.effect-chaos-corrupted-signal .reel-window { background: repeating-linear-gradient(0deg, rgba(255,255,255,.06) 0 1px, transparent 1px 4px); }
+.effect-chaos-corrupted-signal .reel-value { animation: corrupted-signal .1s steps(2) 12; text-shadow: -3px 0 #ff155f, 3px 0 #00dcff; }
+.effect-chaos-ex-explanation .reel-value { color: #ff8b8b !important; font-style: italic; }
+.effect-chaos-sports-commentator .effect-layer { opacity: .6; background: linear-gradient(90deg, transparent 0 45%, rgba(255,255,255,.25) 50%, transparent 55%); animation: sports-sweep .45s linear 4; }
+.effect-chaos-kindergarten .reel-window { background: linear-gradient(135deg, rgba(255,68,101,.16), rgba(255,218,54,.14), rgba(66,208,255,.16)); }
+.effect-chaos-kindergarten .reel-value { animation: kindergarten-hop .32s ease-in-out 5; }
+.effect-chaos-motivational-coach .reel-value { color: var(--acid) !important; text-transform: uppercase; animation: coach-pump .42s ease-in-out 4; }
+.effect-chaos-grandma-recipe .reel-window { background: linear-gradient(120deg, rgba(255,174,91,.18), transparent); }
+.effect-chaos-grandma-recipe .reel-value { color: #ffc47b !important; font-family: Georgia, serif; }
+.effect-chaos-one-star-review .effect-layer { opacity: .85; }
+.effect-chaos-one-star-review .effect-layer::before { content: "★ ☆ ☆ ☆ ☆"; position: absolute; right: 8px; top: 7px; color: #ffb23e; letter-spacing: 2px; animation: reviewer-nag .16s steps(2) 6; }
+.effect-chaos-courtroom .effect-layer { opacity: .9; }
+.effect-chaos-courtroom .effect-layer::before { content: "⚖"; position: absolute; right: 13px; top: 7px; color: #d9b36c; font-size: 2rem; animation: gavel-hit .55s ease-in 2; }
+.effect-chaos-random-censorship .effect-layer { opacity: .85; background: linear-gradient(175deg, transparent 0 35%, #050505 36% 48%, transparent 49% 62%, #050505 63% 70%, transparent 71%); animation: censor-bars .8s steps(2) 2; }
+.effect-chaos-soap-opera .reel-window { background: radial-gradient(circle at 75% 25%, rgba(255,90,140,.29), transparent 45%); }
+.effect-chaos-soap-opera .reel-value { color: #ff8fb3 !important; animation: soap-reveal 1s ease-out both; }
 
 .prompt-zone { display: grid; grid-template-columns: 1fr 240px; gap: 12px; padding: 24px; background: #0b0a0e; }
 .prompt-zone > label { grid-column: 1 / -1; color: #8e8998; font-size: .68rem; letter-spacing: .12em; }
@@ -247,6 +296,26 @@ footer { width: min(1180px, 92vw); margin: 0 auto; padding: 0 0 30px; display: f
 @keyframes weird-grow { 0%, 100% { transform: scale(1) skew(0); } 50% { transform: scale(1.07) skew(-3deg, 1deg); } }
 @keyframes twist-flip { from { transform: rotateX(85deg); filter: hue-rotate(180deg); } to { transform: rotateX(0); filter: hue-rotate(0); } }
 @keyframes rhyme-bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
+@keyframes dad-nod { 0%, 100% { transform: rotate(0); } 50% { transform: rotate(1.5deg); } }
+@keyframes waveform { 0%, 100% { transform: scaleY(.35); } 50% { transform: scaleY(1); } }
+@keyframes ad-pop { from { transform: scale(2.1) rotate(5deg); opacity: 0; } to { transform: scale(1) rotate(-1deg); opacity: 1; } }
+@keyframes conspiracy-pan { to { background-position: 90px 45px; } }
+@keyframes tiny-bounce { 0%, 100% { transform: scale(1); } 50% { transform: scale(.9) translateY(-4px); } }
+@keyframes food-sizzle { 0%, 100% { transform: translate(0); } 50% { transform: translate(1px, -2px); } }
+@keyframes duck-watch { 0%, 100% { transform: translateX(25px) rotate(8deg); } 40%, 70% { transform: translateX(0) rotate(-5deg); } }
+@keyframes toast-drift { 0%, 100% { transform: translateY(9px); } 50% { transform: translateY(-6px); } }
+@keyframes horoscope-drift { to { transform: translateX(35px) rotate(8deg); } }
+@keyframes clickbait-zoom { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.08) rotate(-1deg); } }
+@keyframes brainrot-colors { 0% { background-color: rgba(255,0,110,.19); } 50% { background-color: rgba(0,230,255,.19); } 100% { background-color: rgba(215,255,60,.19); } }
+@keyframes stamp-in { from { transform: scale(2.2) rotate(-18deg); opacity: 0; } to { transform: scale(1) rotate(-8deg); opacity: 1; } }
+@keyframes dramatic-fade { 0%, 100% { opacity: 1; } 45% { opacity: .15; } }
+@keyframes corrupted-signal { 0%, 100% { transform: translate(0); clip-path: inset(0); } 50% { transform: translate(5px, -2px); clip-path: inset(20% 0 35% 0); } }
+@keyframes sports-sweep { from { transform: translateX(-80%); } to { transform: translateX(80%); } }
+@keyframes kindergarten-hop { 0%, 100% { transform: translateY(0) rotate(0); } 50% { transform: translateY(-5px) rotate(2deg); } }
+@keyframes coach-pump { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.09); text-shadow: 0 0 18px var(--acid); } }
+@keyframes gavel-hit { 0%, 65%, 100% { transform: rotate(0); } 75% { transform: rotate(-28deg) translateY(-5px); } 90% { transform: rotate(10deg) translateY(3px); } }
+@keyframes censor-bars { 0%, 100% { transform: translateX(0); } 50% { transform: translateX(12px); } }
+@keyframes soap-reveal { from { opacity: 0; transform: scale(1.35); filter: blur(6px); } to { opacity: 1; transform: scale(1); filter: blur(0); } }
 
 @media (max-width: 760px) {
   .topbar { height: 62px; padding: 0 20px; }
