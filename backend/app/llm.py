@@ -14,6 +14,14 @@ LANGUAGE_NAMES = {
     "es": "Spanish",
     "ja": "Japanese",
     "ar": "Arabic",
+    "fr": "French",
+    "it": "Italian",
+    "ko": "Korean",
+    "uk": "Ukrainian",
+    "pl": "Polish",
+    "hi": "Hindi",
+    "tr": "Turkish",
+    "pt": "Portuguese",
 }
 
 
@@ -95,4 +103,3 @@ def run_demo_generation(prompt: str, rolls: list[RollItem]) -> tuple[str, str, l
             for code in selected["translation"].split(",")
         ]
     return answer, final_prompt, translations
-
