@@ -1,1 +1,56 @@
-# ai-gamblecore
+# AI Gamblecore
+
+Игровой интерфейс для работы с LLM: перед генерацией сервер случайно выбирает цепочку переводов, качество, стиль, формат, язык ответа и дополнительное ограничение.
+
+## Что уже работает
+
+- demo-режим без API-ключа;
+- подключение любого OpenAI-совместимого API;
+- серверные взвешенные роллы с ограниченным временем жизни;
+- цепочки машинных переводов перед генерацией;
+- анимация раскрытия результатов;
+- адаптивный интерфейс;
+- тесты FastAPI и игрового движка;
+- запуск frontend и backend через Docker Compose.
+
+API-ключ отправляется только в backend во время генерации и не сохраняется.
+
+## Быстрый запуск
+
+```bash
+cp .env.example .env
+docker compose up --build
+```
+
+Откройте [http://localhost:3000](http://localhost:3000). Backend и Swagger доступны на [http://localhost:8000/docs](http://localhost:8000/docs).
+
+## Запуск без Docker
+
+Backend:
+
+```bash
+cd backend
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -e '.[dev]'
+uvicorn app.main:app --reload
+```
+
+Frontend:
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+## Live-режим
+
+В настройках интерфейса укажите URL OpenAI-совместимого API, название модели и API-ключ. Если выпала цепочка переводов, модель сначала выполнит каждый перевод отдельным запросом, а затем сформирует финальный ответ.
+
+## Проверки
+
+```bash
+cd backend && pytest
+cd frontend && npm run build
+```
