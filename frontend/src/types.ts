@@ -32,3 +32,14 @@ export interface ProviderConfig {
   model: string;
   api_key: string;
 }
+
+export interface ChatMessage {
+  role: "user" | "assistant";
+  content: string;
+}
+
+export interface ChatTurn {
+  id: string;
+  prompt: string;
+  result: GenerateResponse;
+}

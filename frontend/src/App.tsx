@@ -1,6 +1,6 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { createRoll, generate } from "./api";
-import type { GenerateResponse, ProviderConfig, RollItem } from "./types";
+import type { ChatMessage, ChatTurn, ProviderConfig, RollItem } from "./types";
 
 const CATEGORY_META: Record<string, { icon: string; title: string }> = {
   translation: { icon: "文", title: "Перевод" },
@@ -38,21 +38,33 @@ function App() {
   const [allowTokenBurn, setAllowTokenBurn] = useState(false);
   const [rolls, setRolls] = useState<RollItem[]>(EMPTY_REELS);
   const [revealed, setRevealed] = useState(0);
-  const [result, setResult] = useState<GenerateResponse | null>(null);
+  const [turns, setTurns] = useState<ChatTurn[]>([]);
+  const [pendingPrompt, setPendingPrompt] = useState("");
   const [status, setStatus] = useState<"idle" | "rolling" | "generating">("idle");
   const [error, setError] = useState("");
+  const chatEndRef = useRef<HTMLDivElement>(null);
 
   const canPlay = prompt.trim().length >= 3 && status === "idle" && (demo || provider.api_key.length > 0);
   const buttonText = useMemo(() => {
     if (status === "rolling") return "БАРАБАНЫ КРУТЯТСЯ";
     if (status === "generating") return "МОДЕЛЬ ВЫЖИВАЕТ";
-    return "КРУТИТЬ";
+    return "ОТПРАВИТЬ";
   }, [status]);
+
+  useEffect(() => {
+    chatEndRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+  }, [turns, pendingPrompt, status]);
 
   async function play() {
     if (!canPlay) return;
+    const currentPrompt = prompt.trim();
+    const history: ChatMessage[] = turns.slice(-10).flatMap((turn) => [
+      { role: "user" as const, content: turn.prompt },
+      ...(turn.result.burned ? [] : [{ role: "assistant" as const, content: turn.result.answer }]),
+    ]);
     setError("");
-    setResult(null);
+    setPendingPrompt(currentPrompt);
+    setPrompt("");
     setRevealed(0);
     setRolls(EMPTY_REELS);
     setStatus("rolling");
@@ -65,13 +77,31 @@ function App() {
         setRevealed(index);
       }
       setStatus("generating");
-      const generation = await generate(prompt.trim(), roll.roll_id, demo, provider);
-      setResult(generation);
+      const generation = await generate(currentPrompt, roll.roll_id, demo, provider, history);
+      setTurns((current) => [
+        ...current,
+        {
+          id: crypto.randomUUID(),
+          prompt: currentPrompt,
+          result: generation,
+        },
+      ]);
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : "Что-то пошло не так");
+      setPrompt(currentPrompt);
     } finally {
+      setPendingPrompt("");
       setStatus("idle");
     }
+  }
+
+  function resetConversation() {
+    if (status !== "idle") return;
+    setTurns([]);
+    setPrompt("");
+    setError("");
+    setRolls(EMPTY_REELS);
+    setRevealed(0);
   }
 
   function updateProvider(field: keyof ProviderConfig, value: string) {
@@ -164,63 +194,102 @@ function App() {
             })}
           </div>
 
-          <div className="prompt-zone">
-            <label htmlFor="prompt">ВАШ ПРОМПТ</label>
-            <div className="prompt-box">
-              <textarea
-                id="prompt"
-                value={prompt}
-                onChange={(event) => setPrompt(event.target.value)}
-                placeholder="Напиши то, что боишься доверить случаю..."
-                maxLength={10000}
-                disabled={status !== "idle"}
-              />
-              <span className="counter">{prompt.length} / 10 000</span>
+          <section className="chat-panel" aria-label="Диалог с моделью">
+            <header className="chat-head">
+              <div>
+                <span>ДИАЛОГОВЫЙ СТОЛ</span>
+                <small>Каждое сообщение получает новый набор эффектов</small>
+              </div>
+              <div className="chat-head-actions">
+                <span className="context-count">КОНТЕКСТ: {Math.min(turns.length * 2, 20)} / 20</span>
+                {turns.length > 0 && <button onClick={resetConversation} disabled={status !== "idle"}>НОВЫЙ ДИАЛОГ</button>}
+              </div>
+            </header>
+
+            <div className="conversation" aria-live="polite">
+              {turns.length === 0 && !pendingPrompt && (
+                <div className="chat-empty">
+                  <span className="empty-orb">AG</span>
+                  <div><strong>СТОЛ ЖДЁТ ПЕРВОЙ СТАВКИ</strong><p>Напиши сообщение. Перед каждым ответом барабаны заново выберут судьбу модели.</p></div>
+                </div>
+              )}
+
+              {turns.map((turn, turnIndex) => (
+                <div className="chat-turn" key={turn.id}>
+                  <div className="message user-message">
+                    <span className="message-role">ВЫ · ХОД {String(turnIndex + 1).padStart(2, "0")}</span>
+                    <p>{turn.prompt}</p>
+                  </div>
+                  <div className={`message assistant-message ${turn.result.burned ? "burned-message" : ""}`}>
+                    <div className="message-meta">
+                      <span className="message-role">МОДЕЛЬ · ВЫПАДЕНИЕ</span>
+                      <div className="effect-chips">
+                        {turn.result.rolls.map((roll) => <span className={roll.rarity} key={roll.category}>{roll.label}</span>)}
+                      </div>
+                    </div>
+                    {turn.result.burned ? (
+                      <div className="burned-result compact">
+                        <span className="burned-icon" aria-hidden="true">×</span>
+                        <div><strong>ОТВЕТ СГОРЕЛ</strong><p>{turn.result.demo ? "Demo-симуляция: токены не потрачены." : "Ответ был создан и удалён. Токены списаны."}</p></div>
+                      </div>
+                    ) : (
+                      <div className="message-answer">{turn.result.answer}</div>
+                    )}
+                    {(turn.result.translations.length > 0 || turn.result.final_prompt) && (
+                      <details className="turn-details">
+                        <summary>РАЗОБРАТЬ ЭТОТ ХОД</summary>
+                        {turn.result.translations.map((step, index) => (
+                          <div className="translation-step" key={`${step.language}-${index}`}>
+                            <span>{String(index + 1).padStart(2, "0")} / {step.language}</span><p>{step.text}</p>
+                          </div>
+                        ))}
+                        <pre>{turn.result.final_prompt}</pre>
+                      </details>
+                    )}
+                  </div>
+                </div>
+              ))}
+
+              {pendingPrompt && (
+                <div className="chat-turn pending-turn">
+                  <div className="message user-message"><span className="message-role">ВЫ · НОВЫЙ ХОД</span><p>{pendingPrompt}</p></div>
+                  <div className="message assistant-message typing-message">
+                    <span className="message-role">{status === "rolling" ? "СТОЛ ВЫБИРАЕТ ЭФФЕКТЫ" : "МОДЕЛЬ ПЕЧАТАЕТ"}</span>
+                    <span className="typing-dots"><i /><i /><i /></span>
+                  </div>
+                </div>
+              )}
+              <div ref={chatEndRef} />
             </div>
-            <button className="pull-button" disabled={!canPlay} onClick={play}>
-              <span className="button-glare" />
-              <span className="button-main">{buttonText}</span>
-              <span className="button-sub">{demo ? "БЕСПЛАТНАЯ ПОПЫТКА" : "ЗАПРОС К ВАШЕЙ МОДЕЛИ"}</span>
-            </button>
-          </div>
+
+            <div className="chat-composer">
+              <div className="prompt-box">
+                <textarea
+                  id="prompt"
+                  value={prompt}
+                  onChange={(event) => setPrompt(event.target.value)}
+                  onKeyDown={(event) => {
+                    if (event.key === "Enter" && !event.shiftKey) {
+                      event.preventDefault();
+                      void play();
+                    }
+                  }}
+                  placeholder={turns.length ? "Продолжи диалог..." : "Напиши то, что боишься доверить случаю..."}
+                  maxLength={10000}
+                  disabled={status !== "idle"}
+                />
+                <span className="counter">ENTER — ОТПРАВИТЬ · SHIFT+ENTER — СТРОКА · {prompt.length} / 10 000</span>
+              </div>
+              <button className="pull-button" disabled={!canPlay} onClick={play}>
+                <span className="button-glare" />
+                <span className="button-main">{buttonText}</span>
+                <span className="button-sub">НОВЫЙ РОЛЛ · {demo ? "DEMO" : "LIVE API"}</span>
+              </button>
+            </div>
+          </section>
         </section>
 
         {error && <div className="error-message" role="alert">ОШИБКА СТОЛА: {error}</div>}
-
-        {result && (
-          <section className="result-panel">
-            <div className="result-head">
-              <span>РЕЗУЛЬТАТ РАУНДА</span>
-              <span className="ticket">#{Date.now().toString(36).toUpperCase()}</span>
-            </div>
-            {result.translations.length > 0 && (
-              <details className="transcript">
-                <summary>ЦЕПОЧКА ПЕРЕВОДОВ · {result.translations.length}</summary>
-                {result.translations.map((step, index) => (
-                  <div className="translation-step" key={`${step.language}-${index}`}>
-                    <span>{String(index + 1).padStart(2, "0")} / {step.language}</span>
-                    <p>{step.text}</p>
-                  </div>
-                ))}
-              </details>
-            )}
-            {result.burned ? (
-              <div className="burned-result">
-                <span className="burned-icon" aria-hidden="true">×</span>
-                <div>
-                  <strong>ОТВЕТ СГОРЕЛ</strong>
-                  <p>{result.demo ? "Это была demo-симуляция — реальные токены не потрачены." : "Модель сгенерировала ответ, казино его уничтожило. Токены списаны."}</p>
-                </div>
-              </div>
-            ) : (
-              <div className="answer"><p>{result.answer}</p></div>
-            )}
-            <details className="transcript final-prompt">
-              <summary>ПОКАЗАТЬ ИТОГОВЫЙ ПРОМПТ</summary>
-              <pre>{result.final_prompt}</pre>
-            </details>
-          </section>
-        )}
       </section>
 
       <footer><span>18+ ЭМОЦИОНАЛЬНО</span><span>ДЕНЬГИ НЕ ПРИНИМАЕМ · СМЫСЛ НЕ ВОЗВРАЩАЕМ</span></footer>

@@ -1,4 +1,4 @@
-import type { GenerateResponse, ProviderConfig, RollResponse } from "./types";
+import type { ChatMessage, GenerateResponse, ProviderConfig, RollResponse } from "./types";
 
 const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:8000/api/v1";
 
@@ -35,9 +35,10 @@ export function generate(
   rollId: string,
   demo: boolean,
   provider: ProviderConfig,
+  history: ChatMessage[],
 ): Promise<GenerateResponse> {
   return request<GenerateResponse>("/generate", {
     method: "POST",
-    body: JSON.stringify({ prompt, roll_id: rollId, demo, provider: demo ? null : provider }),
+    body: JSON.stringify({ prompt, roll_id: rollId, demo, provider: demo ? null : provider, history }),
   });
 }
