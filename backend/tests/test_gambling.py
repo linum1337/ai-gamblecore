@@ -24,3 +24,7 @@ def test_every_modifier_has_prompt_instruction() -> None:
     for category, mapping in instructions.items():
         values = {option.value for option in TABLES[category]}
         assert values == set(mapping), f"Missing prompt instruction for {category}"
+
+
+def test_chaos_pool_has_enough_variety() -> None:
+    assert len(TABLES["chaos"]) >= 40
